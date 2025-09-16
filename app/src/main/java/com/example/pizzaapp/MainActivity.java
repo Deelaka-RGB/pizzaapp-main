@@ -10,6 +10,9 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -122,28 +125,61 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void bindViews() {
-        tvGreeting         = findViewById(R.id.tvGreeting);
-        txtNearestBranch   = findViewById(R.id.txtNearestBranch);
+        tvGreeting = findViewById(R.id.tvGreeting);
+        txtNearestBranch = findViewById(R.id.txtNearestBranch);
         tvDeliverySubtitle = findViewById(R.id.tvDeliverySubtitle);
-        btnChangeAddress   = findViewById(R.id.btnChangeAddress);
-        cardDelivery       = findViewById(R.id.cardDelivery);
-        cardPickup         = findViewById(R.id.cardPickup);
+        btnChangeAddress = findViewById(R.id.btnChangeAddress);
+        cardDelivery = findViewById(R.id.cardDelivery);
+        cardPickup = findViewById(R.id.cardPickup);
 
-        txtSeeAllPopular   = findViewById(R.id.txtSeeAllPopular);
-        emptyView          = findViewById(R.id.emptyView);
-        rvPopular          = findViewById(R.id.rvPopular);
-        rvNearest          = findViewById(R.id.rvNearest);
+        txtSeeAllPopular = findViewById(R.id.txtSeeAllPopular);
+        emptyView = findViewById(R.id.emptyView);
+        rvPopular = findViewById(R.id.rvPopular);
+        rvNearest = findViewById(R.id.rvNearest);
 
-        navHome    = findViewById(R.id.navHome);
-        navHeart   = findViewById(R.id.navHeart);
-        navCart    = findViewById(R.id.navCart);
+        navHome = findViewById(R.id.navHome);
+        navHeart = findViewById(R.id.navHeart);
+        navCart = findViewById(R.id.navCart);
         navProfile = findViewById(R.id.navProfile);
     }
 
-    private void setupGreeting() {
-        String name = "Deelaka"; // TODO: replace with actual user name if available
-        tvGreeting.setText("Hello " + name + "! \uD83C\uDF55");
+    @Override
+    protected void onStart() {
+        super.onStart();
+        setupGreeting();
     }
+
+    private void setupGreeting() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (user == null) {
+            tvGreeting.setText("Hello Guest! \uD83C\uDF55"); // 🍕 pizza emoji
+
+            return;
+        }
+
+        // Prefer displayName; fallback to email prefix
+        String name = user.getDisplayName();
+        if (name == null || name.trim().isEmpty()) {
+            String email = user.getEmail();
+            if (email != null && email.contains("@")) {
+                name = email.substring(0, email.indexOf('@'));
+            } else {
+                name = "User";
+            }
+        }
+
+        tvGreeting.setText("Hello " + toTitleCase(name) + "! 🍕");
+    }
+
+    private String toTitleCase(String s) {
+        if (s == null || s.isEmpty()) return s;
+        return s.substring(0, 1).toUpperCase() + s.substring(1);
+    }
+
+
+
+
 
     private void setupRecyclerViews() {
         rvPopular.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));

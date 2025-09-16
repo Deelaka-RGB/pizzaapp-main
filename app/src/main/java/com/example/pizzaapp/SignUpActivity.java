@@ -104,13 +104,13 @@ public class SignUpActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = auth.getCurrentUser();
 
-                        // Set display name (so you can read it later via user.getDisplayName())
+                        // ✅ NEW: Save display name into Firebase Auth profile
                         if (user != null && !name.isEmpty()) {
                             UserProfileChangeRequest profile =
                                     new UserProfileChangeRequest.Builder()
                                             .setDisplayName(name)
                                             .build();
-                            user.updateProfile(profile);
+                            user.updateProfile(profile); // Async; no flow change needed
                         }
 
                         if (REQUIRE_EMAIL_VERIFICATION && user != null) {
