@@ -41,6 +41,19 @@ public class AccountActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         db   = FirebaseFirestore.getInstance();
 
+        // NEW: Set titles for each included row
+        TextView tvSavedAddresses = findViewById(R.id.includeSavedAddresses).findViewById(R.id.tvRowTitle);
+        tvSavedAddresses.setText("Saved Addresses");
+        TextView tvChangeNumber = findViewById(R.id.includeChangeNumber).findViewById(R.id.tvRowTitle);
+        tvChangeNumber.setText("Change Number");
+        TextView tvChangeEmail = findViewById(R.id.includeChangeEmail).findViewById(R.id.tvRowTitle);
+        tvChangeEmail.setText("Change Email");
+        TextView tvChangePassword = findViewById(R.id.includeChangePassword).findViewById(R.id.tvRowTitle);
+        tvChangePassword.setText("Change Password");
+        TextView tvDeleteAccount = findViewById(R.id.includeDeleteAccount).findViewById(R.id.tvRowTitle);
+        tvDeleteAccount.setText("Delete Account");
+        // END NEW
+
         // tap profile card -> go to editor (NOT AccountActivity again)
         findViewById(R.id.profileCard).setOnClickListener(v ->
                 startActivity(new Intent(this, EditProfileActivity.class)));
@@ -80,13 +93,17 @@ public class AccountActivity extends AppCompatActivity {
             return;
         }
 
+        // Show signup name (from FirebaseAuth displayName)
+        tvName.setText(user.getDisplayName() == null ? "" : user.getDisplayName());
         tvEmail.setText(user.getEmail() == null ? "" : user.getEmail());
 
+        // Optional: load phone/photo from Firestore
         db.collection("users").document(user.getUid()).get()
                 .addOnSuccessListener(this::applyProfileToUI)
                 .addOnFailureListener(e ->
                         Toast.makeText(this, e.getLocalizedMessage(), Toast.LENGTH_LONG).show());
     }
+
 
     private void applyProfileToUI(DocumentSnapshot snap) {
         if (snap != null && snap.exists()) {
