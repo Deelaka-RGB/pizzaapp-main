@@ -185,12 +185,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void seedDemoData() {
-        masterData.add(new FoodItem("Margherita", "Classic Pizza", 4.8f, R.drawable.pizza_10, 120));
-        masterData.add(new FoodItem("Pepperoni", "Double Cheese", 4.7f, R.drawable.chickenpizza_1, 96));
-        masterData.add(new FoodItem("Veggie", "Fresh Garden", 4.6f, R.drawable.pizza_9, 73));
-        masterData.add(new FoodItem("BBQ Chicken", "Smoky & Sweet", 4.5f, R.drawable.pizza_13, 88));
-        masterData.add(new FoodItem("Hawaiian", "Pineapple Hit", 4.2f, R.drawable.pizza_9, 51));
-        masterData.add(new FoodItem("Meat Lovers", "Loaded Feast", 4.9f, R.drawable.pizza_10, 134));
+        masterData.add(new FoodItem("Margherita", "Classic Pizza", 4.8f, R.drawable.pizza_10, 1590));
+        masterData.add(new FoodItem("Pepperoni", "Double Cheese", 4.7f, R.drawable.chickenpizza_1, 1890));
+        masterData.add(new FoodItem("Veggie", "Fresh Garden", 4.6f, R.drawable.pizza_9, 1700));
+        masterData.add(new FoodItem("BBQ Chicken", "Smoky & Sweet", 4.5f, R.drawable.pizza_13, 2000));
+        masterData.add(new FoodItem("Hawaiian", "Pineapple Hit", 4.2f, R.drawable.pizza_9, 1800));
+        masterData.add(new FoodItem("Meat Lovers", "Loaded Feast", 4.9f, R.drawable.pizza_10, 2200));
     }
 
     private void toggleEmpty() {

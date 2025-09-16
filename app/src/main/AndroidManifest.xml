@@ -102,6 +102,10 @@
 
         <activity android:name=".AdminActivity" android:exported="false" />
 
+        <activity android:name=".AddMenuItemActivity"
+            android:exported="false"/>
+
+
 
         <!-- Firebase initializes via google-services.json automatically -->
 
