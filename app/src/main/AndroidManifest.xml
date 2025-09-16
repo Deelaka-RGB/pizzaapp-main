@@ -105,6 +105,13 @@
         <activity android:name=".AddMenuItemActivity"
             android:exported="false"/>
 
+        <activity android:name=".PreparingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+
+        <activity android:name=".OrderSuccessActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
 
 
         <!-- Firebase initializes via google-services.json automatically -->

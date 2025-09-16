@@ -3,6 +3,7 @@ package com.example.pizzaapp;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
+import android.view.View; // NEW
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -57,6 +58,39 @@ public class CheckoutActivity extends AppCompatActivity {
         }
 
         refreshUiFromPrefsOrIntent();
+
+        // NEW: Pay Now → show preparing video screen
+        View btnPayNow = findViewById(R.id.btnPayNow);
+        if (btnPayNow != null) {
+            btnPayNow.setOnClickListener(v -> {
+                // Reuse currently shown values
+                String addressShown = tvAddressSummary.getText() == null ? null : tvAddressSummary.getText().toString();
+                String outletShown  = tvOutlet.getText() == null ? null : tvOutlet.getText().toString();
+
+                int countShown;
+                try {
+                    countShown = Integer.parseInt(tvItemCount.getText().toString());
+                } catch (Exception e) {
+                    countShown = totalQuantityFromCart();
+                }
+
+                double totalShown;
+                try {
+                    String t = tvTotal.getText().toString().replace("Rs.", "").trim().replace(",", "");
+                    totalShown = Double.parseDouble(t);
+                } catch (Exception e) {
+                    totalShown = computeTotalWithDelivery();
+                }
+
+                Intent i = new Intent(CheckoutActivity.this, PreparingActivity.class);
+                i.putExtra(EXTRA_ADDRESS, addressShown);
+                i.putExtra(EXTRA_OUTLET, outletShown);
+                i.putExtra(EXTRA_TOTAL, totalShown);
+                i.putExtra(EXTRA_COUNT, countShown);
+                startActivity(i);
+            });
+        }
+        // END NEW
     }
 
     @Override protected void onResume() {
@@ -141,7 +175,7 @@ public class CheckoutActivity extends AppCompatActivity {
     private static double haversineKm(double lat1, double lon1, double lat2, double lon2) {
         final double R = 6371.0;
         double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lon2 - lon1);
+        double dLon = Math.toRadians(lat2 - lon1);
         double a = Math.sin(dLat/2)*Math.sin(dLat/2)
                 + Math.cos(Math.toRadians(lat1))*Math.cos(Math.toRadians(lat2))
                 * Math.sin(dLon/2)*Math.sin(dLon/2);
