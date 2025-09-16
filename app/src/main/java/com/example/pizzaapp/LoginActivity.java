@@ -21,8 +21,14 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
+
+    private static final String PREFS = "pm_session";
+    private static final String KEY_EMAIL = "email";
+    private static final String ADMIN_EMAIL = "gamardeneth@gmail.com"; // fallback admin
 
     private TextInputLayout tilEmailLogin, tilPasswordLogin;
     private TextInputEditText etEmailLogin, etPasswordLogin;
@@ -31,10 +37,8 @@ public class LoginActivity extends AppCompatActivity {
     private CheckBox cbRemember;
 
     private SharedPreferences prefs;
-    private static final String PREFS = "pm_session";
-    private static final String KEY_EMAIL = "email";
-
     private FirebaseAuth auth;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,17 +48,18 @@ public class LoginActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         if (toolbar != null) toolbar.setNavigationOnClickListener(v -> onBackPressed());
 
-        tilEmailLogin = findViewById(R.id.tilEmailLogin);
-        tilPasswordLogin = findViewById(R.id.tilPasswordLogin);
-        etEmailLogin   = findViewById(R.id.etEmailLogin);
-        etPasswordLogin= findViewById(R.id.etPasswordLogin);
-        btnLoginNow    = findViewById(R.id.btnLoginNow);
-        tvToSignup     = findViewById(R.id.tvToSignup);
-        tvForgot       = findViewById(R.id.tvForgot);
-        cbRemember     = findViewById(R.id.cbRemember);
+        tilEmailLogin   = findViewById(R.id.tilEmailLogin);
+        tilPasswordLogin= findViewById(R.id.tilPasswordLogin);
+        etEmailLogin    = findViewById(R.id.etEmailLogin);
+        etPasswordLogin = findViewById(R.id.etPasswordLogin);
+        btnLoginNow     = findViewById(R.id.btnLoginNow);
+        tvToSignup      = findViewById(R.id.tvToSignup);
+        tvForgot        = findViewById(R.id.tvForgot);
+        cbRemember      = findViewById(R.id.cbRemember);
 
         prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
         auth  = FirebaseAuth.getInstance();
+        db    = FirebaseFirestore.getInstance();
 
         // Prefill remembered email
         String rememberedEmail = prefs.getString(KEY_EMAIL, "");
@@ -77,12 +82,11 @@ public class LoginActivity extends AppCompatActivity {
         super.onStart();
         FirebaseUser current = auth.getCurrentUser();
         if (current != null) {
-            // If you require email verification, gate here:
             if (!current.isEmailVerified()) {
                 Toast.makeText(this, "Please verify your email first.", Toast.LENGTH_LONG).show();
                 auth.signOut();
             } else {
-                goHomeAndFinish();
+                fetchRoleAndRoute(current); // <- route admin or customer on app start
             }
         }
     }
@@ -111,7 +115,6 @@ public class LoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = auth.getCurrentUser();
 
-                        // Optional: enforce email verification
                         if (user != null && !user.isEmailVerified()) {
                             auth.signOut();
                             Toast.makeText(this, "Verify your email, then try again.", Toast.LENGTH_LONG).show();
@@ -126,13 +129,55 @@ public class LoginActivity extends AppCompatActivity {
                         }
 
                         Toast.makeText(this, "Welcome back!", Toast.LENGTH_SHORT).show();
-                        goHomeAndFinish();
+
+                        if (user != null) {
+                            fetchRoleAndRoute(user);
+                        } else {
+                            // Very unlikely path
+                            routeAfterLogin(false);
+                        }
                     } else {
                         String msg = readableAuthError(task.getException());
                         tilPasswordLogin.setError("Invalid email or password");
                         Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    private void fetchRoleAndRoute(FirebaseUser user) {
+        // First try Firestore users/{uid}.isAdmin
+        db.collection("users").document(user.getUid()).get()
+                .addOnSuccessListener(doc -> routeAfterLogin(resolveIsAdmin(doc, user)))
+                .addOnFailureListener(e -> {
+                    // On failure, still allow fallback by email
+                    boolean isAdmin = isFallbackAdmin(user);
+                    routeAfterLogin(isAdmin);
+                });
+    }
+
+    private boolean resolveIsAdmin(DocumentSnapshot doc, FirebaseUser user) {
+        boolean isAdmin = false;
+        if (doc != null && doc.exists()) {
+            Boolean flag = doc.getBoolean("isAdmin");
+            isAdmin = (flag != null && flag);
+        }
+        // Fallback: special email treated as admin if Firestore missing
+        if (!isAdmin && isFallbackAdmin(user)) {
+            isAdmin = true;
+        }
+        return isAdmin;
+    }
+
+    private boolean isFallbackAdmin(FirebaseUser user) {
+        String email = user.getEmail();
+        return email != null && email.equalsIgnoreCase(ADMIN_EMAIL);
+    }
+
+    private void routeAfterLogin(boolean isAdmin) {
+        Intent i = new Intent(this, isAdmin ? AdminActivity.class : MainActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(i);
+        finish();
     }
 
     private void sendResetEmail() {
@@ -158,13 +203,6 @@ public class LoginActivity extends AppCompatActivity {
         } else {
             return "Authentication failed. Please try again.";
         }
-    }
-
-    private void goHomeAndFinish() {
-        Intent i = new Intent(this, MainActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(i);
-        finish();
     }
 
     private static String safeText(TextInputEditText et) {

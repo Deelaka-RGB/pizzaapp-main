@@ -13,6 +13,13 @@
     <color name="pizza_red">#D32F2F</color>
     <color name="pizza_red_dark">#B71C1C</color>
     <color name="pizza_red_light">#F44336</color>
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="teal_200">#03DAC5</color>
+    <color name="teal_700">#018786</color>
+
+    <!-- Surface/background colors for Material3 -->
+
 
 
 
